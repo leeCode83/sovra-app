@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sovra
 
-## Getting Started
+> *Your data, your consent, your income.*
 
-First, run the development server:
+Sovra adalah **consent layer terdesentralisasi** yang duduk di antara institusi penyimpan data medis dan pihak yang meminta akses data tersebut.
+
+Pasien (pemilik data) dapat memberikan, mengelola, dan mencabut consent akses data medis mereka secara granular melalui Telegram bot, serta menerima kompensasi otomatis (USDC micropayment via x402) setiap kali ada pihak yang meminta akses data mereka.
+
+Sovra **tidak menyimpan data medis**. Sovra hanya menerbitkan **consent proof** (ERC-7710 delegation) yang dapat diverifikasi on-chain. Institusi menggunakan proof tersebut sebagai gerbang sebelum melepas data ke pihak peminta.
+
+---
+
+## Architecture
+
+```
+[Data Requester / Researcher Agent]
+           │
+           │ 1. Request consent + x402 payment
+           ▼
+    [SOVRA LAYER]
+    ┌─────────────────────────────────┐
+    │  Patient Consent Agent          │
+    │  ↕ consult                      │
+    │  Venice Risk Agent              │
+    │  ↓ jika approved                │
+    │  ERC-7710 Delegation (proof)    │
+    │  ↓ relay gasless                │
+    │  1Shot API                      │
+    └─────────────────────────────────┘
+           │
+           │ 2. Consent proof
+           ▼
+    [INSTITUSI PENYIMPAN DATA]
+    Verifikasi proof on-chain
+    → Release data ke requester
+           │
+           ▼
+    [PASIEN] ← terima USDC otomatis
+```
+
+## Tech Stack
+
+| Layer              | Tech                                        |
+| ------------------ | ------------------------------------------- |
+| Frontend           | Next.js 16, React 19, Tailwind CSS v4       |
+| Patient Interface  | Telegram Bot                                |
+| Smart Account      | MetaMask Smart Accounts Kit (ERC-4337)      |
+| Delegation         | ERC-7710                                    |
+| Payment            | x402 (Coinbase) + USDC                      |
+| AI Risk Assessment | Venice AI                                   |
+| Blockchain Client  | Viem                                        |
+| Network            | Base (L2)                                   |
+| Backend API        | Node.js + Express                           |
+| Database           | PostgreSQL, Redis                           |
+
+## Quick Start
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+sovra-app/
+├── app/          # Next.js App Router
+├── docs/         # Dokumentasi
+├── public/       # Static assets
+├── AGENTS.md     # Agent configuration
+└── package.json
+```
 
-## Learn More
+## License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT © 2026 Sovra
