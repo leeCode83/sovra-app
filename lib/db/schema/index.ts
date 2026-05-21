@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, json, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   role: text("role").$type<"patient" | "researcher" | "admin">().notNull(),
   name: text("name"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  preferences: json("preferences").$type<{ autoApproveScopes: string[] }>().$default(() => ({ autoApproveScopes: [] })),
 });
 
 export const consents = pgTable("consents", {
@@ -17,6 +18,8 @@ export const consents = pgTable("consents", {
   dataScope: text("data_scope"),
   status: text("status").$type<"active" | "revoked" | "expired">().default("active").notNull(),
   delegationHash: text("delegation_hash"),
+  requestId: text("request_id"),
+  riskAssessment: json("risk_assessment").$type<{ risk: string; reason: string; action: string; confidence: number; assessedAt?: string }>(),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
@@ -24,6 +27,7 @@ export const consents = pgTable("consents", {
   index("consents_patient_id_idx").on(table.patientId),
   index("consents_researcher_id_idx").on(table.researcherId),
   index("consents_status_idx").on(table.status),
+  index("consents_request_id_idx").on(table.requestId),
 ]);
 
 export const delegations = pgTable("delegations", {

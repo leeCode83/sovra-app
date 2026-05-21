@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { redis } from "@/lib/redis";
+import { createHash } from "crypto";
 
 const venice = new OpenAI({
   apiKey: process.env.VENICE_API_KEY,
@@ -86,4 +88,54 @@ export function assessRiskFallback(input: RiskAssessmentInput): RiskAssessmentRe
   }
 
   return { risk, reason, action, confidence: 0.7 };
+}
+
+interface ConsentRequestForVenice {
+  scope: {
+    dataType: string;
+    durationDays: number;
+  };
+  payment: {
+    amount: string;
+  };
+}
+
+export async function assessRiskWithCache(input: RiskAssessmentInput): Promise<RiskAssessmentResult> {
+  const cacheKey = `venice:assessment:${createHash("sha256").update(JSON.stringify(input)).digest("hex").slice(0, 16)}`;
+  
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached) as RiskAssessmentResult;
+    }
+  } catch {
+    // Redis miss or error — proceed to Venice
+  }
+
+  const result = await assessRisk(input);
+
+  try {
+    await redis.setex(cacheKey, 300, JSON.stringify(result)); // 5 min TTL
+  } catch {
+    // Redis write failure is non-critical
+  }
+
+  return result;
+}
+
+export async function buildVeniceInput(
+  request: ConsentRequestForVenice,
+  activeDelegations: number,
+  hasOverlap: boolean,
+  institutionVerified: boolean,
+): Promise<RiskAssessmentInput> {
+  return {
+    activeDelegations,
+    requestedScope: request.scope.dataType,
+    hasOverlapWithExisting: hasOverlap,
+    institutionVerified,
+    durationDays: request.scope.durationDays,
+    requesterReputation: "verified",
+    paymentAmount: request.payment.amount,
+  };
 }

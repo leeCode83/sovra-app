@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { consents } from "@/lib/db/schema";
-import { auth } from "@/lib/auth/middleware";
+import { auth, requireRole } from "@/lib/auth/middleware";
 import { createConsentSchema } from "@/lib/validators";
 import { eq, and, isNull } from "drizzle-orm";
 
@@ -25,8 +25,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await auth(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const roleCheck = await requireRole(req, "admin");
+  if (roleCheck instanceof NextResponse) return roleCheck;
 
   const body = await req.json();
   const parsed = createConsentSchema.safeParse(body);

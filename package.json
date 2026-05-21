@@ -16,9 +16,11 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@grammyjs/conversations": "^2.1.1",
     "@metamask/delegation-toolkit": "^0.13.0",
     "@metamask/smart-accounts-kit": "^1.5.0",
     "drizzle-orm": "^0.45.2",
+    "grammy": "^1.43.0",
     "ioredis": "^5.10.1",
     "jose": "^6.2.3",
     "next": "16.2.6",
