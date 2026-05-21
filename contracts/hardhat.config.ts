@@ -18,7 +18,7 @@ const config: HardhatUserConfig = {
       url: "http://127.0.0.1:8545",
     },
     baseSepolia: {
-      url: "https://sepolia.base.org",
+      url: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
       chainId: 84532,
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
     },

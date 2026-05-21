@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 
 const venice = new OpenAI({
   apiKey: process.env.VENICE_API_KEY,
-  baseURL: "https://api.venice.ai/api/v1",
+  baseURL: process.env.VENICE_BASE_URL || "https://api.venice.ai/api/v1",
 });
 
 export type RiskLevel = "low" | "medium" | "high";

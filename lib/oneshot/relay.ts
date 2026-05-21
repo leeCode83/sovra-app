@@ -6,7 +6,7 @@ const publicClient = createPublicClient({
   transport: http(process.env.BASE_SEPOLIA_RPC_URL),
 });
 
-const RELAYER_URL = "https://relayer.1shotapi.com";
+const RELAYER_URL = process.env.ONESHOT_RELAYER_URL || "https://relayer.1shotapi.com";
 
 export interface RelayerCapabilities {
   supportedChains: string[];
